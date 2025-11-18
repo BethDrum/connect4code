@@ -1,23 +1,24 @@
 def putValInBoard (board):
-    board = [["|", "|", "|", "|", "|", "|"],
-             ["|", "|", "|", "|", "|", "|"], 
-             ["|", "|", "|", "|", "|", "|"], 
-             ["|", "|", "x", "|", "|", "|"], 
-             ["|", "|", "x", "|", "|", "|"], 
-             ["|", "|", "x", "|", "|", "|"], 
-             ["|", "|", "x", "|", "|", "|"]]
+    board = [["|", "|", "|", "|", "|", "|", "|"],
+             ["|", "|", "|", "|", "|", "|", "|"], 
+             ["|", "|", "|", "|", "|", "|", "|"], 
+             ["|", "|", "|", "|", "|", "|", "|"], 
+             ["|", "|", "|", "|", "|", "|", "|"], 
+             ["|", "|", "|", "|", "|", "|", "|"]]
     return board
 
 #place a token into the board, using a reversed range loop
 def placeToken(board, j, piece):
-    for i in reversed(range(7)):
+    for i in reversed(range(6)):
         if board[i][j] == '|':
             board[i][j] = piece
-            break
+            return board
+    return board
 
 #check if a player has won or not
+
 def checkWin(board, piece):
-    for i in range(0, 7):
+    for i in range(0, 5):
         for j in range(0, 6):
             if (j <= 2 and board[i][j] == piece and board[i][j+1] == piece and board[i][j+2] == piece and board[i][j+3] == piece):
                 return 'won'
@@ -41,27 +42,28 @@ def play2players(board):
     while True:
         displayBoard(board)
         print("Player 1, please enter the column you wish to add your piece in: \n")
-        col = input()
+        col = int(input())
         board = placeToken(board, col, 'x')
         win = checkWin(board, 'x')
         if win == 'won':
             print("Player 1 wins!")
-            exit
+            return True
         
         displayBoard(board)
         print("Player 2, please enter the column you wish to add your piece in: \n")
-        col = input()
+        int(col = input())
         board = placeToken(board, col, 'o')
         win = checkWin(board, 'o')
         if win == 'won':
             print("Player 1 wins!")
-            exit
+            return False
 
 
 
 #main code
-board = [['|']*6 for i in range(7)]
-#play2players(board)
+board = [['|']*7 for i in range(6)]
+board = putValInBoard(board)
+play2players(board)
 
 #for i in board:
 #    print(i)
