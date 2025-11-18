@@ -22,13 +22,13 @@ def checkWin(board, piece):
             if (j <= 2 and board[i][j] == piece and board[i][j+1] == piece and board[i][j+2] == piece and board[i][j+3] == piece):
                 return 'won'
             #vertical
-            if (i <= 2 and board[i][j] == piece and board[i+1][j] == piece and board[i+2][j] == piece and board[i+3][j] == piece):
+            if (i <= 3 and board[i][j] == piece and board[i+1][j] == piece and board[i+2][j] == piece and board[i+3][j] == piece):
                 return 'won'
             #diagonal right 
-            if (i <= 2 and j <=3 and board[i][j] == piece and board[i+1][j+1] == piece and board[i+2][j+2] == piece and board[i+3][j+3] == piece):
+            if (i <= 3 and j <= 4 and board[i][j] == piece and board[i+1][j+1] == piece and board[i+2][j+2] == piece and board[i+3][j+3] == piece):
                 return 'won'
             #diagonal left 
-            if ( i <= 2 and j >= 3 and board[i][j] == piece and board[i + 1][j - 1] == piece and board[i + 2][j - 2] == piece and board[i + 3][j - 3] == piece):
+            if ( i >= 3 and j <= 4 and board[i][j] == piece and board[i-1][j+1] == piece and board[i-2][j+2] == piece and board[i-3][j+3] == piece):
                 return 'won'
     return 'noWin'
 
@@ -61,7 +61,7 @@ def play2players(board):
 
 #main code
 board = [['|']*6 for i in range(7)]
-play2players(board)
+#play2players(board)
 
 #for i in board:
 #    print(i)
