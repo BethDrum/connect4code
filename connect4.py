@@ -1,16 +1,11 @@
-def putValInBoard (board):
-    board = [["|", "|", "|", "|", "|", "|", "|"],
-             ["|", "|", "|", "|", "|", "|", "|"], 
-             ["|", "|", "|", "|", "|", "|", "|"], 
-             ["|", "|", "|", "|", "|", "|", "|"], 
-             ["|", "|", "|", "|", "|", "|", "|"], 
-             ["|", "|", "|", "|", "|", "|", "|"]]
+def Initalise ():
+    board = [[0]*7 for i in range(6)]
     return board
 
 #place a token into the board, using a reversed range loop
 def placeToken(board, j, piece):
     for i in reversed(range(6)):
-        if board[i][j] == '|':
+        if board[i][j] == 0:
             board[i][j] = piece
             return board
     return board
@@ -20,13 +15,13 @@ def placeToken(board, j, piece):
 def checkWin(board, piece):
     for i in range(0, 5):
         for j in range(0, 6):
-            if (j <= 2 and board[i][j] == piece and board[i][j+1] == piece and board[i][j+2] == piece and board[i][j+3] == piece):
+            if (j <= 3 and board[i][j] == piece and board[i][j+1] == piece and board[i][j+2] == piece and board[i][j+3] == piece):
                 return 'won'
             #vertical
-            if (i <= 3 and board[i][j] == piece and board[i+1][j] == piece and board[i+2][j] == piece and board[i+3][j] == piece):
+            if (i <= 2 and board[i][j] == piece and board[i+1][j] == piece and board[i+2][j] == piece and board[i+3][j] == piece):
                 return 'won'
             #diagonal right 
-            if (i <= 3 and j <= 4 and board[i][j] == piece and board[i+1][j+1] == piece and board[i+2][j+2] == piece and board[i+3][j+3] == piece):
+            if (i <= 2 and j <= 3 and board[i][j] == piece and board[i+1][j+1] == piece and board[i+2][j+2] == piece and board[i+3][j+3] == piece):
                 return 'won'
             #diagonal left 
             if ( i >= 3 and j <= 4 and board[i][j] == piece and board[i-1][j+1] == piece and board[i-2][j+2] == piece and board[i-3][j+3] == piece):
@@ -34,26 +29,35 @@ def checkWin(board, piece):
     return 'noWin'
 
 def displayBoard(board):
-    for i in board:
-        print(i)
-    print()
+
+    print("|1|2|3|4|5|6|7|")
+    for i in range(len(board)):
+        line = ""
+        for j in range(len(board[i])):
+            token=str(board[i][j])
+            token = token.replace("1", "🟥")
+            token = token.replace("2", "🟨")
+            token = token.replace("0", "  ")
+            line = line + token
+        print(line)
+    print("|1|2|3|4|5|6|7|")
 
 def play2players(board):
     while True:
         displayBoard(board)
         print("Player 1, please enter the column you wish to add your piece in: \n")
         col = int(input())
-        board = placeToken(board, col, 'x')
-        win = checkWin(board, 'x')
+        board = placeToken(board, col-1, 1)
+        win = checkWin(board, 1)
         if win == 'won':
             print("Player 1 wins!")
             return True
         
         displayBoard(board)
         print("Player 2, please enter the column you wish to add your piece in: \n")
-        int(col = input())
-        board = placeToken(board, col, 'o')
-        win = checkWin(board, 'o')
+        col = int(input())
+        board = placeToken(board, col-1, 2)
+        win = checkWin(board, 2)
         if win == 'won':
             print("Player 1 wins!")
             return False
@@ -61,19 +65,6 @@ def play2players(board):
 
 
 #main code
-board = [['|']*7 for i in range(6)]
-board = putValInBoard(board)
+board = Initalise()
 play2players(board)
 
-#for i in board:
-#    print(i)
-#print()
-#placeToken(board, 2, 'x')
-
-#board = putValInBoard(board)
-#displayBoard(board)
-#win = checkWin(board, 'x')
-#if win == "won":
-#    print("win")
-#else:
-#    print("No win")
