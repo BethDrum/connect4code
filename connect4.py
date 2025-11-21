@@ -1,3 +1,5 @@
+import aistuff
+
 def Initalise ():
     board = [[0]*7 for i in range(6)]
     return board
