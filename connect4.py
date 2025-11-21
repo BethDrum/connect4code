@@ -62,6 +62,45 @@ def play2players(board):
             print("Player 1 wins!")
             return False
 
+# ripped most of the 2 player method here
+def playAi(board):
+    #changes board to be 0s, 1s and 2s (sorry bethany, this just helped my head and the ai's empty dumbass brain)
+    listFix(board) 
+    
+    model = aistuff.Connect4()  #makes the model object basically
+    while True:
+        displayBoard(board)
+        print("Player 1, please enter the column you wish to add your piece in: \n")
+        col = int(input())
+        board = placeToken(board, col, 1) 
+        win = checkWin(board, 1)
+        if win == 'won':
+            print("Player 1 wins!")
+            return True
+        #turn the board (6x7) to a tensor (matrix of matrices) that is 1x42 (so basically making our
+        # board into one LONG line of numbers by just making it have no rows lol)
+        y = aistuff.torch.tensor(board, dtype=aistuff.torch.float32).reshape(1, 42)
+        #make a copy of the model's result, and make your prediction
+        t = model(y)
+        predic = aistuff.nn.Softmax(dim=1)(t)
+        #pick the highest value and play that piece
+        yPred = predic.argmax(1).item()
+        placeToken(board, yPred, 2)
+        displayBoard(board)
+        #show each prediction value just for testing sake
+        print(predic)
+        print("ai %i" %yPred)
+
+#method to change the board to be numbers 
+def listFix(board):
+    for i in range (6):
+        for j in range (7):
+            if(board[i][j] == '|'):
+                board[i][j] = 0
+            else:
+                board[i][j] = 1 if board[i][j] == 'x' else 2
+    return board
+
 
 
 #main code
