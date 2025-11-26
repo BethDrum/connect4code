@@ -1,4 +1,15 @@
 import aistuff
+import pygame
+
+#initalise pygame and screen
+pygame.init()
+SCREEN_WIDTH = 840
+SCREEN_HEIGHT = 720
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption("Connect4")
+pygame.display.update()
+
+
 
 def Initalise ():
     board = [[0]*7 for i in range(6)]
@@ -15,8 +26,8 @@ def placeToken(board, j, piece):
 #check if a player has won or not
 
 def checkWin(board, piece):
-    for i in range(0, 5):
-        for j in range(0, 6):
+    for i in range(6):
+        for j in range(7):
             if (j <= 3 and board[i][j] == piece and board[i][j+1] == piece and board[i][j+2] == piece and board[i][j+3] == piece):
                 return 'won'
             #vertical
@@ -44,11 +55,50 @@ def displayBoard(board):
         print(line)
     print("|1|2|3|4|5|6|7|")
 
+    img = pygame.image.load("Connect4Board.png")
+    img = pygame.transform.scale(img, (840, 720))
+    screen.blit(img, (0, 0))
+    for y in range(len(board)):
+        for x in range(len(board[y])):
+            if board[y][x] == 1:
+                img = pygame.image.load("yellow.png")
+                img = pygame.transform.scale(img, (120, 120))
+                screen.blit(img, (x*120, y*120))
+            if board[y][x] == 2:
+                img = pygame.image.load("red.png")
+                img = pygame.transform.scale(img, (120, 120))
+                screen.blit(img, (x*120, y*120))
+    pygame.display.update()
+
+def getColumnFromClick(mouse_x):
+    COLUMN_WIDTH = 840 // 7   # = 102 pixels per column
+    col = mouse_x // COLUMN_WIDTH   # 0–6
+    return col + 1  
+
+def waitForClick():
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = event.pos
+                COLUMN_WIDTH = 840 // 7
+                col = mouse_x // COLUMN_WIDTH   # 0–6
+                return col + 1
+
 def play2players(board):
     while True:
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+
         displayBoard(board)
         print("Player 1, please enter the column you wish to add your piece in: \n")
-        col = int(input())
+        col = waitForClick()
         board = placeToken(board, col-1, 1)
         win = checkWin(board, 1)
         if win == 'won':
@@ -57,7 +107,7 @@ def play2players(board):
         
         displayBoard(board)
         print("Player 2, please enter the column you wish to add your piece in: \n")
-        col = int(input())
+        col = waitForClick()
         board = placeToken(board, col-1, 2)
         win = checkWin(board, 2)
         if win == 'won':
@@ -67,14 +117,14 @@ def play2players(board):
 # ripped most of the 2 player method here
 def playAi(board):
     #changes board to be 0s, 1s and 2s (sorry bethany, this just helped my head and the ai's empty dumbass brain)
-    listFix(board) 
+    listFix(board) ##kinda redundant now
     
     model = aistuff.Connect4()  #makes the model object basically
     while True:
         displayBoard(board)
         print("Player 1, please enter the column you wish to add your piece in: \n")
-        col = int(input())
-        board = placeToken(board, col, 1) 
+        col = waitForClick()
+        board = placeToken(board, col-1, 1)
         win = checkWin(board, 1)
         if win == 'won':
             print("Player 1 wins!")
