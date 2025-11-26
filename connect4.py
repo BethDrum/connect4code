@@ -117,7 +117,6 @@ def play2players(board):
 # ripped most of the 2 player method here
 def playAi(board):
     #changes board to be 0s, 1s and 2s (sorry bethany, this just helped my head and the ai's empty dumbass brain)
-    listFix(board) ##kinda redundant now
     
     model = aistuff.Connect4()  #makes the model object basically
     while True:
@@ -143,19 +142,7 @@ def playAi(board):
         print(predic)
         print("ai %i" %yPred)
 
-#method to change the board to be numbers 
-def listFix(board):
-    for i in range (6):
-        for j in range (7):
-            if(board[i][j] == '|'):
-                board[i][j] = 0
-            else:
-                board[i][j] = 1 if board[i][j] == 'x' else 2
-    return board
-
-
-
 #main code
 board = Initalise()
-play2players(board)
+playAi(board)
 
