@@ -1,18 +1,24 @@
 import aistuff
+import pygame
 
-def putValInBoard (board):
-    board = [["|", "|", "|", "|", "|", "|", "|"],
-             ["|", "|", "|", "|", "|", "|", "|"], 
-             ["|", "|", "|", "|", "|", "|", "|"], 
-             ["|", "|", "|", "|", "|", "|", "|"], 
-             ["|", "|", "|", "|", "|", "|", "|"], 
-             ["|", "|", "|", "|", "|", "|", "|"]]
+#initalise pygame and screen
+pygame.init()
+SCREEN_WIDTH = 840
+SCREEN_HEIGHT = 720
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption("Connect4")
+pygame.display.update()
+
+
+
+def Initalise ():
+    board = [[0]*7 for i in range(6)]
     return board
 
 #place a token into the board, using a reversed range loop
 def placeToken(board, j, piece):
     for i in reversed(range(6)):
-        if board[i][j] == '|' or board[i][j] == 0:
+        if board[i][j] == 0:
             board[i][j] = piece
             return board
     return board
@@ -20,15 +26,15 @@ def placeToken(board, j, piece):
 #check if a player has won or not
 
 def checkWin(board, piece):
-    for i in range(0, 5):
-        for j in range(0, 6):
-            if (j <= 2 and board[i][j] == piece and board[i][j+1] == piece and board[i][j+2] == piece and board[i][j+3] == piece):
+    for i in range(6):
+        for j in range(7):
+            if (j <= 3 and board[i][j] == piece and board[i][j+1] == piece and board[i][j+2] == piece and board[i][j+3] == piece):
                 return 'won'
             #vertical
-            if (i <= 3 and board[i][j] == piece and board[i+1][j] == piece and board[i+2][j] == piece and board[i+3][j] == piece):
+            if (i <= 2 and board[i][j] == piece and board[i+1][j] == piece and board[i+2][j] == piece and board[i+3][j] == piece):
                 return 'won'
             #diagonal right 
-            if (i <= 3 and j <= 4 and board[i][j] == piece and board[i+1][j+1] == piece and board[i+2][j+2] == piece and board[i+3][j+3] == piece):
+            if (i <= 2 and j <= 3 and board[i][j] == piece and board[i+1][j+1] == piece and board[i+2][j+2] == piece and board[i+3][j+3] == piece):
                 return 'won'
             #diagonal left 
             if ( i >= 3 and j <= 4 and board[i][j] == piece and board[i-1][j+1] == piece and board[i-2][j+2] == piece and board[i-3][j+3] == piece):
@@ -36,26 +42,74 @@ def checkWin(board, piece):
     return 'noWin'
 
 def displayBoard(board):
-    for i in board:
-        print(i)
-    print()
+
+    print("|1|2|3|4|5|6|7|")
+    for i in range(len(board)):
+        line = ""
+        for j in range(len(board[i])):
+            token=str(board[i][j])
+            token = token.replace("1", "🟥")
+            token = token.replace("2", "🟨")
+            token = token.replace("0", "  ")
+            line = line + token
+        print(line)
+    print("|1|2|3|4|5|6|7|")
+
+    img = pygame.image.load("Connect4Board.png")
+    img = pygame.transform.scale(img, (840, 720))
+    screen.blit(img, (0, 0))
+    for y in range(len(board)):
+        for x in range(len(board[y])):
+            if board[y][x] == 1:
+                img = pygame.image.load("yellow.png")
+                img = pygame.transform.scale(img, (120, 120))
+                screen.blit(img, (x*120, y*120))
+            if board[y][x] == 2:
+                img = pygame.image.load("red.png")
+                img = pygame.transform.scale(img, (120, 120))
+                screen.blit(img, (x*120, y*120))
+    pygame.display.update()
+
+def getColumnFromClick(mouse_x):
+    COLUMN_WIDTH = 840 // 7   # = 102 pixels per column
+    col = mouse_x // COLUMN_WIDTH   # 0–6
+    return col + 1  
+
+def waitForClick():
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = event.pos
+                COLUMN_WIDTH = 840 // 7
+                col = mouse_x // COLUMN_WIDTH   # 0–6
+                return col + 1
 
 def play2players(board):
     while True:
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+
         displayBoard(board)
         print("Player 1, please enter the column you wish to add your piece in: \n")
-        col = int(input())
-        board = placeToken(board, col, 'x')
-        win = checkWin(board, 'x')
+        col = waitForClick()
+        board = placeToken(board, col-1, 1)
+        win = checkWin(board, 1)
         if win == 'won':
             print("Player 1 wins!")
             return True
         
         displayBoard(board)
         print("Player 2, please enter the column you wish to add your piece in: \n")
-        int(col = input())
-        board = placeToken(board, col, 'o')
-        win = checkWin(board, 'o')
+        col = waitForClick()
+        board = placeToken(board, col-1, 2)
+        win = checkWin(board, 2)
         if win == 'won':
             print("Player 1 wins!")
             return False
@@ -63,14 +117,13 @@ def play2players(board):
 # ripped most of the 2 player method here
 def playAi(board):
     #changes board to be 0s, 1s and 2s (sorry bethany, this just helped my head and the ai's empty dumbass brain)
-    listFix(board) 
     
     model = aistuff.Connect4()  #makes the model object basically
     while True:
         displayBoard(board)
         print("Player 1, please enter the column you wish to add your piece in: \n")
-        col = int(input())
-        board = placeToken(board, col, 1) 
+        col = waitForClick()
+        board = placeToken(board, col-1, 1)
         win = checkWin(board, 1)
         if win == 'won':
             print("Player 1 wins!")
@@ -89,35 +142,7 @@ def playAi(board):
         print(predic)
         print("ai %i" %yPred)
 
-#method to change the board to be numbers 
-def listFix(board):
-    for i in range (6):
-        for j in range (7):
-            if(board[i][j] == '|'):
-                board[i][j] = 0
-            else:
-                board[i][j] = 1 if board[i][j] == 'x' else 2
-    return board
-
-
-
 #main code
-board = [['|']*7 for i in range(6)]
-board = putValInBoard(board)
-
+board = Initalise()
 playAi(board)
 
-play2players(board)
-
-#for i in board:
-#    print(i)
-#print()
-#placeToken(board, 2, 'x')
-
-#board = putValInBoard(board)
-#displayBoard(board)
-#win = checkWin(board, 'x')
-#if win == "won":
-#    print("win")
-#else:
-#    print("No win")
