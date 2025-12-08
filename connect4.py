@@ -9,8 +9,6 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Connect4")
 pygame.display.update()
 
-
-
 def Initalise ():
     board = [[0]*7 for i in range(6)]
     return board
@@ -142,7 +140,13 @@ def playAi(board):
         print(predic)
         print("ai %i" %yPred)
 
+def checkFull(board):
+    for i in range (7):
+        if board [0][i] != 0:
+            return True
+    return False
+
 #main code
 board = Initalise()
-playAi(board)
+play2players(board)
 
