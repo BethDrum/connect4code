@@ -70,7 +70,7 @@ def displayBoard(board):
 
 def getColumnFromClick(mouse_x):
     COLUMN_WIDTH = 120   # = 120 pixels per column
-    col = mouse_x / COLUMN_WIDTH   # 0–6
+    col = mouse_x // COLUMN_WIDTH   # 0–6
     return col + 1  
 
 def waitForClick():
@@ -83,7 +83,7 @@ def waitForClick():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = event.pos
                 COLUMN_WIDTH = 120
-                col = mouse_x / COLUMN_WIDTH   # 0–6
+                col = mouse_x // COLUMN_WIDTH   # 0–6
                 return col + 1
 
 def play2players(board):
