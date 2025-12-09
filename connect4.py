@@ -1,5 +1,6 @@
 import aistuff
 import pygame
+import random;
 
 #initalise pygame and screen
 pygame.init()
@@ -85,6 +86,53 @@ def waitForClick():
                 COLUMN_WIDTH = 120
                 col = mouse_x // COLUMN_WIDTH   # 0–6
                 return col + 1
+
+def autoPlayer(board):
+
+    end = False
+
+    # 1 for HORIZONTAL
+    # 2 for VERTICAL 
+    direction = randint(1,2)
+
+    # picks a random place for first piece, iterates from there
+    startPlace = randint(0,6)
+
+    # if direction is horizontal:
+    if direction == 1:
+        # if it is being placed left -> right
+        if startPlace <= 4:
+            for i in range(4):
+                placeToken(board, (startPlace + i), 1)
+
+                # check if auto-player has won
+                win = checkWin(board, 1)
+                if win == "won":
+                    print("Player 1 wins!")
+                    end = True;
+
+        # if it is being placed right -> left
+        elif startPlace > 4:
+            for i in range(4):
+                placeToken(board, (startPlace - i), 1)
+
+                # check if auto-player has won
+                win = checkWin(board, 1)
+                if win == "won":
+                    print("Player 1 wins!")   
+                    end = True;
+
+    # if direction is vertical:
+    elif direction == 2:
+        for i in range(4):
+            placeToken(board, startPlace, 1)
+            
+            # check if auto-player has won
+            win = checkWin(board, 1)
+            if win == "won":
+                print("Player 1 wins!")
+                end = True;
+
 
 def play2players(board):
     while True:
