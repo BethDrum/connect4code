@@ -70,8 +70,8 @@ def displayBoard(board):
     pygame.display.update()
 
 def getColumnFromClick(mouse_x):
-    COLUMN_WIDTH = 840 // 7   # = 102 pixels per column
-    col = mouse_x // COLUMN_WIDTH   # 0–6
+    COLUMN_WIDTH = 120   # = 120 pixels per column
+    col = mouse_x / COLUMN_WIDTH   # 0–6
     return col + 1  
 
 def waitForClick():
@@ -83,8 +83,8 @@ def waitForClick():
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = event.pos
-                COLUMN_WIDTH = 840 // 7
-                col = mouse_x // COLUMN_WIDTH   # 0–6
+                COLUMN_WIDTH = 120
+                col = mouse_x / COLUMN_WIDTH   # 0–6
                 return col + 1
 
 def autoPlayer(board):
@@ -137,7 +137,7 @@ def autoPlayer(board):
 def play2players(board):
     while True:
 
-        for event in pygame.event.get():
+        for event in pygame.event.get(): 
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
