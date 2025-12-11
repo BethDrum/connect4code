@@ -6,9 +6,14 @@ import gymnasium as gym
 from gymnasium.spaces import discrete
 from random import random, randint
 from gymnasium import Env, spaces
-from collections import namedtuple, deque
+import pygame
 
-
+pygame.init()
+SCREEN_WIDTH = 840
+SCREEN_HEIGHT = 720
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption("Connect4")
+pygame.display.update()
 
 
 
@@ -372,6 +377,21 @@ class C4Env(Env):
                 line = line + token
             print(line)
         print("|1|2|3|4|5|6|7|")
+
+        img = pygame.image.load("Connect4Board.png")
+        img = pygame.transform.scale(img, (840, 720))
+        screen.blit(img, (0, 0))
+        for y in range(len(self.board)):
+            for x in range(len(self.board[y])):
+                if self.board[y][x] == 1:
+                    img = pygame.image.load("yellow.png")
+                    img = pygame.transform.scale(img, (120, 120))
+                    screen.blit(img, (x*120, y*120))
+                if self.board[y][x] == 2:
+                    img = pygame.image.load("red.png")
+                    img = pygame.transform.scale(img, (120, 120))
+                    screen.blit(img, (x*120, y*120))
+        pygame.display.update()
         return
             
     def reset(self):
@@ -381,11 +401,18 @@ class C4Env(Env):
         return super().reset()
     
 
+
     
 Env = C4Env()
 
 episodes = 10000
 for episode in range(1, episodes+1):
+
+    for event in pygame.event.get(): 
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+
     state = Env.reset()
     done = False
     score = 0
@@ -397,9 +424,8 @@ for episode in range(1, episodes+1):
         Env.render()
     print("Episode:{},Score:{}".format(episode, score))
 
-    with open("out.txt", "a") as f:
-        print("Episode:{},Score:{}".format(episode, score), file= f)
-        print('\n')
+pygame.quit()
+exit()
 
 
 
