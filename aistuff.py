@@ -489,15 +489,15 @@ avgwin = 0
 for episode in range(1, episodes+1):
     player = False
     
-    if episode > 10000:
-        print(avgwin/10000)
-        player = True
-
 
     for event in pygame.event.get(): 
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                player = True
+                print(avgwin/10000)
 
     state = Env.reset()
     done = False
