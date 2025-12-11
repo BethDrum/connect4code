@@ -7,15 +7,16 @@ from gymnasium.spaces import discrete
 from random import random, randint
 from gymnasium import Env, spaces
 import pygame
+from collections import deque
 
 pygame.init()
-SCREEN_WIDTH = 840
+SCREEN_WIDTH = 1080
 SCREEN_HEIGHT = 720
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Connect4")
 pygame.display.update()
-
-
+font = pygame.font.SysFont('Corbel',35)
+color = (255,255,255) 
 
 
 class Connect4(nn.Module):
@@ -365,7 +366,7 @@ class C4Env(Env):
         
         return self.state, reward, done
 
-    def render(self):
+    def render(self, episode, score):
         print("|1|2|3|4|5|6|7|")
         for i in range(len(self.board)):
             line = ""
@@ -378,6 +379,7 @@ class C4Env(Env):
             print(line)
         print("|1|2|3|4|5|6|7|")
 
+        screen.fill((0,0,0))
         img = pygame.image.load("Connect4Board.png")
         img = pygame.transform.scale(img, (840, 720))
         screen.blit(img, (0, 0))
@@ -391,6 +393,13 @@ class C4Env(Env):
                     img = pygame.image.load("red.png")
                     img = pygame.transform.scale(img, (120, 120))
                     screen.blit(img, (x*120, y*120))
+
+        if (episode != 0):
+            episode = font.render('Episode:' + str(episode), True , color)
+            screen.blit(episode , (860,10))
+        score = font.render('Score:' + str(score), True , color)
+        screen.blit(score , (860,50))
+
         pygame.display.update()
         return
             
@@ -421,7 +430,7 @@ for episode in range(1, episodes+1):
         action = Env.action_space.sample()
         n_state, reward, done = Env.step(action)
         score=reward
-        Env.render()
+        Env.render(episode, score)
     print("Episode:{},Score:{}".format(episode, score))
 
 pygame.quit()
