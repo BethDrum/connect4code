@@ -4,9 +4,9 @@ import torch.nn as nn
 import torch.optim as optim
 import gymnasium as gym
 from gymnasium.spaces import discrete
-from random import randint
+from random import random, randint
 from gymnasium import Env, spaces
-
+from collections import namedtuple, deque
 
 
 
@@ -105,13 +105,13 @@ def rewardRows(board, piece):
             
             # /////    diagonal left   /////
             # 4 in a row
-            if ( i >= 3 and j <= 4 and board[i][j] == piece and board[i-1][j+1] == piece and board[i-2][j+2] == piece and board[i-3][j+3] == piece):
+            if ( i >= 3 and j <= 3 and board[i][j] == piece and board[i-1][j+1] == piece and board[i-2][j+2] == piece and board[i-3][j+3] == piece):
                 return 64
             # 3 in a row
-            elif ( i >= 3 and j <= 4 and board[i][j] == piece and board[i-1][j+1] == piece and board[i-2][j+2] == piece):
+            elif ( i >= 3 and j <= 3 and board[i][j] == piece and board[i-1][j+1] == piece and board[i-2][j+2] == piece):
                 return 8
             # 2 in a row
-            elif ( i >= 3 and j <= 4 and board[i][j] == piece and board[i-1][j+1] == piece):
+            elif ( i >= 3 and j <= 3 and board[i][j] == piece and board[i-1][j+1] == piece):
                 return 2
 
     return 1 # generic 'place token' reward
@@ -200,29 +200,29 @@ def rewardOpponentBlock(board, myPiece, otherPiece):
 
             # /////    diagonal left   /////
             # block 4 in a row
-            if ( i >= 3 and j <= 4 and board[i][j] == myPiece and board[i-1][j+1] == otherPiece and board[i-2][j+2] == otherPiece and board[i-3][j+3] == otherPiece):
+            if ( i >= 3 and j <= 3 and board[i][j] == myPiece and board[i-1][j+1] == otherPiece and board[i-2][j+2] == otherPiece and board[i-3][j+3] == otherPiece):
                 return 8
-            elif ( i >= 3 and j <= 4 and board[i][j] == otherPiece and board[i-1][j+1] == myPiece and board[i-2][j+2] == otherPiece and board[i-3][j+3] == otherPiece):
+            elif ( i >= 3 and j <= 3 and board[i][j] == otherPiece and board[i-1][j+1] == myPiece and board[i-2][j+2] == otherPiece and board[i-3][j+3] == otherPiece):
                 return 8
-            elif ( i >= 3 and j <= 4 and board[i][j] == otherPiece and board[i-1][j+1] == otherPiece and board[i-2][j+2] == myPiece and board[i-3][j+3] == otherPiece):
+            elif ( i >= 3 and j <= 3 and board[i][j] == otherPiece and board[i-1][j+1] == otherPiece and board[i-2][j+2] == myPiece and board[i-3][j+3] == otherPiece):
                 return 8
-            elif ( i >= 3 and j <= 4 and board[i][j] == otherPiece and board[i-1][j+1] == otherPiece and board[i-2][j+2] == otherPiece and board[i-3][j+3] == myPiece):
+            elif ( i >= 3 and j <= 3 and board[i][j] == otherPiece and board[i-1][j+1] == otherPiece and board[i-2][j+2] == otherPiece and board[i-3][j+3] == myPiece):
                 return 8
             
             # block 3 in a row
-            if ( i >= 3 and j <= 4 and board[i][j] == myPiece and board[i-1][j+1] == otherPiece and board[i-2][j+2] == otherPiece):
+            if ( i >= 3 and j <= 3 and board[i][j] == myPiece and board[i-1][j+1] == otherPiece and board[i-2][j+2] == otherPiece):
                 return 4
             # block 3 in a row
-            elif ( i >= 3 and j <= 4 and board[i][j] == otherPiece and board[i-1][j+1] == myPiece and board[i-2][j+2] == otherPiece):
+            elif ( i >= 3 and j <= 3 and board[i][j] == otherPiece and board[i-1][j+1] == myPiece and board[i-2][j+2] == otherPiece):
                 return 4
             # block 3 in a row
-            elif ( i >= 3 and j <= 4 and board[i][j] == otherPiece and board[i-1][j+1] == otherPiece and board[i-2][j+2] == myPiece):
+            elif ( i >= 3 and j <= 3 and board[i][j] == otherPiece and board[i-1][j+1] == otherPiece and board[i-2][j+2] == myPiece):
                 return 4
             
             # block 2 in a row
-            if ( i >= 3 and j <= 4 and board[i][j] == myPiece and board[i-1][j+1] == otherPiece):
+            if ( i >= 3 and j <= 3 and board[i][j] == myPiece and board[i-1][j+1] == otherPiece):
                 return 2
-            if ( i >= 3 and j <= 4 and board[i][j] == otherPiece and board[i-1][j+1] == myPiece):
+            if ( i >= 3 and j <= 3 and board[i][j] == otherPiece and board[i-1][j+1] == myPiece):
                 return 2
     
     return 0 # outcome of no block
@@ -257,10 +257,10 @@ def punishWhenOpponentScores(board, piece): # potentially change name? punishing
             
             # /////    diagonal left   /////
             # 4 in a row
-            if ( i >= 3 and j <= 4 and board[i][j] == piece and board[i-1][j+1] == piece and board[i-2][j+2] == piece and board[i-3][j+3] == piece):
+            if ( i >= 3 and j <= 3 and board[i][j] == piece and board[i-1][j+1] == piece and board[i-2][j+2] == piece and board[i-3][j+3] == piece):
                 return -100
             # 3 in a row
-            elif ( i >= 3 and j <= 4 and board[i][j] == piece and board[i-1][j+1] == piece and board[i-2][j+2] == piece):
+            elif ( i >= 3 and j <= 3 and board[i][j] == piece and board[i-1][j+1] == piece and board[i-2][j+2] == piece):
                 return -10
 
     return 0
@@ -298,7 +298,21 @@ def autoPlayer(board, startPlace):
             placeToken(board, (startPlace - 1), 1)
             return startPlace-1
 
-
+class ReplayMemory(object):
+    def __init__(self, buffer_size):
+        self.buffer = deque(maxlen=buffer_size)
+    
+    def add_experience(self, state, action, reward, next_state):
+        experience = (state, action, reward, next_state)
+        self.buffer.append(experience)
+    
+    def sample(self, batch_size):
+        sample_batch = random.sample(self.buffer, batch_size)
+        states, actions, rewards, next_states, dones = zip(*sample_batch)
+        return np.array(states), np.array(actions), np.array(rewards), np.array(next_states)
+    
+    def size(self):
+        return len(self.buffer)
 
 class C4Env(Env):
     def __init__(self):
@@ -308,18 +322,37 @@ class C4Env(Env):
         self.action_space = spaces.Discrete(7)
         self.observation_space = self.board
         self.state = self.board
+        self.model = Connect4()
+        self.turnCount = 0
+        self.loss_fn = nn.HuberLoss()
+        self.optimizer = optim.Adam(self.model.parameters(), lr=0.001)
+        self.replayBuffer = ReplayMemory(10000)
 
     def step(self, action):
         done = False
-        reward = 1
+        reward = -1
         self.ep_return += 1
 
         self.startPlace = autoPlayer(self.board, self.startPlace)
         if checkWin(self.board,1) or checkWin(self.board,2) or checkFull(self.board):
             done = True
 
-        
-
+        y = torch.tensor(self.board, dtype=torch.float32).reshape(1, 42)
+        t = self.model(y)
+        predic = nn.Softmax(dim=1)(t)
+        #pick the highest value and play that piece
+        yPred = predic.argmax(1).item()
+        self.turnCount += 1
+        aiRewards = 0
+        aiRewards = aiRewards+rewardRows(self.board, 2)
+        aiRewards = aiRewards+rewardOpponentBlock(self.board, 2,1)
+        aiRewards = aiRewards+punishWhenOpponentScores(self.board, 1)
+        print(aiRewards)
+        print("reward")
+        reward = (aiRewards*self.turnCount - aiRewards)
+        self.optimizer.zero_grad()
+        self.loss_fn(predic/reward, torch.tensor(self.board, dtype=torch.float32)).backward()
+        self.optimizer.step()
         if not done:
             self.board = placeToken(self.board, action-1, 2)
             if checkWin(self.board,1) or checkWin(self.board,2) or checkFull(self.board):
@@ -351,7 +384,7 @@ class C4Env(Env):
     
 Env = C4Env()
 
-episodes = 1000
+episodes = 10000
 for episode in range(1, episodes+1):
     state = Env.reset()
     done = False
@@ -360,9 +393,13 @@ for episode in range(1, episodes+1):
     while not done:
         action = Env.action_space.sample()
         n_state, reward, done = Env.step(action)
-        score+=reward
+        score=reward
         Env.render()
     print("Episode:{},Score:{}".format(episode, score))
+
+    with open("out.txt", "a") as f:
+        print("Episode:{},Score:{}".format(episode, score), file= f)
+        print('\n')
 
 
 
