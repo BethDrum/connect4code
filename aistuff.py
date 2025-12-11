@@ -76,51 +76,64 @@ def placeToken(board, j, piece):
 def rewardRows(board, piece):
     for i in range(6):
         for j in range(7):
-            # /////     horizontal     /////
-            # 4 in a row
-            if (j <= 3 and board[i][j] == piece and board[i][j+1] == piece and board[i][j+2] == piece and board[i][j+3] == piece):
-                return 64 # reward = 64
-            # 3 in a row
-            elif (j <= 3 and board[i][j] == piece and board[i][j+1] == piece and board[i][j+2] == piece):
-                return 8 # reward = 8
-            # 2 in a row
-            elif (j <= 3 and board[i][j] == piece and board[i][j+1] == piece):
-                return 2 # reward # 2
 
-            # /////     vertical    /////
-            # 4 in a row
-            if (i <= 2 and board[i][j] == piece and board[i+1][j] == piece and board[i+2][j] == piece and board[i+3][j] == piece):
-                return 64
-            # 3 in a row
-            elif (i <= 2 and board[i][j] == piece and board[i+1][j] == piece and board[i+2][j] == piece):
-                return 8
-            # 2 in a row
-            elif (i <= 2 and board[i][j] == piece and board[i+1][j] == piece):
-                return 2
+            # --------- HORIZONTAL ---------
+            if j <= 3:
+                # 4 in a row
+                if (board[i][j] == piece and board[i][j+1] == piece and board[i][j+2] == piece and board[i][j+3] == piece):
+                    return 64
+                
+                # 3 in a row 
+                elif (board[i][j] == piece and board[i][j+1] == piece and board[i][j+2] == piece):
+                    return 8
+                
+                # 2 in a row 
+                elif (board[i][j] == piece and board[i][j+1] == piece):
+                    return 2
+
+            # /////     Vertical     /////
+            if i <= 2:
+                # 4 in a row
+                if (board[i][j] == piece and board[i+1][j] == piece and board[i+2][j] == piece and board[i+3][j] == piece):
+                    return 64
+                
+                # 3 in a row
+                elif (board[i][j] == piece and board[i+1][j] == piece and board[i+2][j] == piece):
+                    return 8
+                
+                # 2 in a row
+                elif (board[i][j] == piece and board[i+1][j] == piece):
+                    return 2
 
             # /////     diagonal right     /////
-            # 4 in a row
-            if (i <= 2 and j <= 3 and board[i][j] == piece and board[i+1][j+1] == piece and board[i+2][j+2] == piece and board[i+3][j+3] == piece):
-                return 64
-            # 3 in a row
-            elif (i <= 2 and j <= 3 and board[i][j] == piece and board[i+1][j+1] == piece and board[i+2][j+2] == piece):
-                return 8
-            # 2 in a row
-            elif (i <= 2 and j <= 3 and board[i][j] == piece and board[i+1][j+1] == piece):
-                return 2
-            
-            # /////    diagonal left   /////
-            # 4 in a row
-            if ( i >= 3 and j <= 3 and board[i][j] == piece and board[i-1][j+1] == piece and board[i-2][j+2] == piece and board[i-3][j+3] == piece):
-                return 64
-            # 3 in a row
-            elif ( i >= 3 and j <= 3 and board[i][j] == piece and board[i-1][j+1] == piece and board[i-2][j+2] == piece):
-                return 8
-            # 2 in a row
-            elif ( i >= 3 and j <= 3 and board[i][j] == piece and board[i-1][j+1] == piece):
-                return 2
+            if i <= 2 and j <= 3:
+                # 4 in a row
+                if (board[i][j] == piece and board[i+1][j+1] == piece and board[i+2][j+2] == piece and board[i+3][j+3] == piece):
+                    return 64
+                # 3 in a row
+                elif (board[i][j] == piece and board[i+1][j+1] == piece and board[i+2][j+2] == piece):
+                    return 8
+                # 2 in a row
+                elif (board[i][j] == piece and 
+                      board[i+1][j+1] == piece):
+                    return 2
 
-    return 1 # generic 'place token' reward
+            # /////     diagonal left     /////
+            if i >= 3 and j <= 3:
+                # 4 in a row
+                if (board[i][j] == piece and board[i-1][j+1] == piece and board[i-2][j+2] == piece and board[i-3][j+3] == piece):
+                    print("hi")
+                    return 64
+                
+                # 3 in a row
+                elif (board[i][j] == piece and board[i-1][j+1] == piece and board[i-2][j+2] == piece):
+                    return 8
+                
+                # 2 in a row
+                elif (board[i][j] == piece and board[i-1][j+1] == piece):
+                    return 2
+
+    return 1
 
 # function to calculate rewards gathered from blocking opponent plays
 def rewardOpponentBlock(board, myPiece, otherPiece):
@@ -284,7 +297,6 @@ def autoPlayer(board, startPlace):
     # picks a random place for first piece, iterates from there
     aiRewards = 0
     turnCount = 0
-    model = Connect4()
 
     # if direction is vertical:
     if vertical == 1:
@@ -353,8 +365,8 @@ class C4Env(Env):
         aiRewards = aiRewards+rewardRows(self.board, 2)
         aiRewards = aiRewards+rewardOpponentBlock(self.board, 2,1)
         aiRewards = aiRewards+punishWhenOpponentScores(self.board, 1)
-        print(aiRewards)
-        print("reward")
+        #print(aiRewards)
+        #print("reward")
         reward = (aiRewards*self.turnCount - aiRewards)
         self.optimizer.zero_grad()
         self.loss_fn(predic/reward, torch.tensor(self.board, dtype=torch.float32)).backward()
@@ -367,18 +379,6 @@ class C4Env(Env):
         return self.state, reward, done
 
     def render(self, episode, score):
-        print("|1|2|3|4|5|6|7|")
-        for i in range(len(self.board)):
-            line = ""
-            for j in range(len(self.board[i])):
-                token=str(self.board[i][j])
-                token = token.replace("1", "🟥")
-                token = token.replace("2", "🟨")
-                token = token.replace("0", "  ")
-                line = line + token
-            print(line)
-        print("|1|2|3|4|5|6|7|")
-
         screen.fill((0,0,0))
         img = pygame.image.load("Connect4Board.png")
         img = pygame.transform.scale(img, (840, 720))
@@ -430,7 +430,10 @@ for episode in range(1, episodes+1):
         action = Env.action_space.sample()
         n_state, reward, done = Env.step(action)
         score=reward
+        #makes it better to display ever so often
+    if episode%50 == 0:
         Env.render(episode, score)
+
     print("Episode:{},Score:{}".format(episode, score))
 
 pygame.quit()
