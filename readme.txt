@@ -1,0 +1,1 @@
+please make sure you have numpy, gymnasium, pytorch and pygame installed through pip(or any pakcage manager)
