@@ -4,10 +4,10 @@ import torch.nn as nn
 import torch.optim as optim
 import gymnasium as gym
 from gymnasium.spaces import discrete
-from random import random, randint
+from random import random, randint, sample
 from gymnasium import Env, spaces
 import pygame
-from collections import deque
+from collections import deque, namedtuple
 
 pygame.init()
 SCREEN_WIDTH = 1080
@@ -18,6 +18,9 @@ pygame.display.update()
 font = pygame.font.SysFont('Corbel',35)
 color = (255,255,255) 
 
+device = torch.device(
+    "cpu"
+)
 
 class Connect4(nn.Module):
     def __init__(self):
@@ -33,7 +36,7 @@ class Connect4(nn.Module):
             nn.Linear(250, 250),
             nn.ReLU(),
             nn.Linear(250, 7),
-            #nn.Sigmoid()
+            nn.Sigmoid()
         )
         
     def forward(self, x):
@@ -74,6 +77,13 @@ def placeToken(board, j, piece):
             return board
     return board
 
+def getValid(board):
+    valid = []
+    for i in range(7):
+        if board[0][i] == 0:
+            valid.append(i)
+    return valid
+
 #               PLEASE CALL THESE FUNCTIONS /BEFORE/ CHECKWIN. IF CHECKWIN IS CALLED BEFORE, NO REWARDS ARE AWARDED FOR WINNING
 
 # function calculate rewards gathered from 4's, 3's, 2's, 1's in a row
@@ -86,7 +96,7 @@ def rewardRows(board, piece):
             if j <= 3:
                 # 4 in a row
                 if (board[i][j] == piece and board[i][j+1] == piece and board[i][j+2] == piece and board[i][j+3] == piece):
-                    reward += 100000000 
+                    reward += 1000
                 
                 # 3 in a row 
                 elif (board[i][j] == piece and board[i][j+1] == piece and board[i][j+2] == piece):
@@ -100,7 +110,7 @@ def rewardRows(board, piece):
             if i <= 2:
                 # 4 in a row
                 if (board[i][j] == piece and board[i+1][j] == piece and board[i+2][j] == piece and board[i+3][j] == piece):
-                    reward += 100000000 
+                    reward += 1000
                 
                 # 3 in a row
                 elif (board[i][j] == piece and board[i+1][j] == piece and board[i+2][j] == piece):
@@ -114,7 +124,7 @@ def rewardRows(board, piece):
             if i <= 2 and j <= 3:
                 # 4 in a row
                 if (board[i][j] == piece and board[i+1][j+1] == piece and board[i+2][j+2] == piece and board[i+3][j+3] == piece):
-                    reward += 100000000 
+                    reward += 1000
                 # 3 in a row
                 elif (board[i][j] == piece and board[i+1][j+1] == piece and board[i+2][j+2] == piece):
                     reward += 80
@@ -127,7 +137,7 @@ def rewardRows(board, piece):
             if i >= 3 and j <= 3:
                 # 4 in a row
                 if (board[i][j] == piece and board[i-1][j+1] == piece and board[i-2][j+2] == piece and board[i-3][j+3] == piece):
-                    reward += 100000000 
+                    reward += 1000
                 
                 # 3 in a row
                 elif (board[i][j] == piece and board[i-1][j+1] == piece and board[i-2][j+2] == piece):
@@ -260,7 +270,7 @@ def punishWhenOpponentScores(board, piece): # potentially change name? punishing
             # /////     horizontal     /////
             # 4 in a row
             if (j <= 3 and board[i][j] == piece and board[i][j+1] == piece and board[i][j+2] == piece and board[i][j+3] == piece):
-                reward += -100000000 # reward = -100
+                reward += -1000 # reward = -1000
                 
             # 3 in a row
             elif (j <= 3 and board[i][j] == piece and board[i][j+1] == piece and board[i][j+2] == piece):
@@ -269,7 +279,7 @@ def punishWhenOpponentScores(board, piece): # potentially change name? punishing
             # /////     vertical    /////
             # 4 in a row
             if (i <= 2 and board[i][j] == piece and board[i+1][j] == piece and board[i+2][j] == piece and board[i+3][j] == piece):
-                reward += -100000000
+                reward += -1000
                 
             # 3 in a row
             elif (i <= 2 and board[i][j] == piece and board[i+1][j] == piece and board[i+2][j] == piece):
@@ -278,7 +288,7 @@ def punishWhenOpponentScores(board, piece): # potentially change name? punishing
             # /////     diagonal right     /////
             # 4 in a row
             if (i <= 2 and j <= 3 and board[i][j] == piece and board[i+1][j+1] == piece and board[i+2][j+2] == piece and board[i+3][j+3] == piece):
-                reward += -100000000
+                reward += -1000
                 
             # 3 in a row
             elif (i <= 2 and j <= 3 and board[i][j] == piece and board[i+1][j+1] == piece and board[i+2][j+2] == piece):
@@ -287,13 +297,35 @@ def punishWhenOpponentScores(board, piece): # potentially change name? punishing
             # /////    diagonal left   /////
             # 4 in a row
             if ( i >= 3 and j <= 3 and board[i][j] == piece and board[i-1][j+1] == piece and board[i-2][j+2] == piece and board[i-3][j+3] == piece):
-                reward += -100000000
+                reward += -1000
                 
             # 3 in a row
             elif ( i >= 3 and j <= 3 and board[i][j] == piece and board[i-1][j+1] == piece and board[i-2][j+2] == piece):
                 reward += -10
 
     return reward
+
+def simBoard(board, col, piece):
+    temp = [[0]*7 for _ in range(6)]
+    for i in range(len(board)):
+        for j in range(len(board[i])):
+            temp[i][j] = board[i][j]
+    placeToken(temp, col, piece)
+    return temp
+
+
+def BetterPlayer(board):
+    valids = getValid(board)
+    for valid in valids:
+        if checkWin(simBoard(board, valid, 1), 1):
+            return valid
+    for valid in valids:
+        if checkWin(simBoard(board, valid, 2), 2):
+            return valid
+    else:
+        ran = randint(0, len(valids)-1)
+        return valids[ran]
+
 
 def autoPlayer(board, startPlace):
 
@@ -327,21 +359,24 @@ def autoPlayer(board, startPlace):
             placeToken(board, (startPlace - 1), 1)
             return startPlace-1
 
+Transition = namedtuple('Transition',
+                        ('state', 'action', 'next_state', 'reward'))
+
+
 class ReplayMemory(object):
-    def __init__(self, buffer_size):
-        self.buffer = deque(maxlen=buffer_size)
-    
-    def add_experience(self, state, action, reward, next_state):
-        experience = (state, action, reward, next_state)
-        self.buffer.append(experience)
-    
+
+    def __init__(self, capacity):
+        self.memory = deque([], maxlen=capacity)
+
+    def push(self, *args):
+        """Save a transition"""
+        self.memory.append(Transition(*args))
+
     def sample(self, batch_size):
-        sample_batch = random.sample(self.buffer, batch_size)
-        states, actions, rewards, next_states, dones = zip(*sample_batch)
-        return np.array(states), np.array(actions), np.array(rewards), np.array(next_states)
-    
-    def size(self):
-        return len(self.buffer)
+        return sample(self.memory, batch_size)
+
+    def __len__(self):
+        return len(self.memory)
 
 class C4Env(Env):
     def __init__(self):
@@ -357,15 +392,17 @@ class C4Env(Env):
         self.optimizer = optim.Adam(self.model.parameters(), lr=0.001)
         self.replayBuffer = ReplayMemory(10000)
         self.avg = 0
+        
 
-    def step(self,action, player):
+    def step(self,player):
         done = False
         reward = -1
         self.ep_return += 1
         aiRewards = 0
-
+        prevBoard = self.board
         if not player:
             self.startPlace = autoPlayer(self.board, self.startPlace)
+            #placeToken(self.board, BetterPlayer(self.board),1)
             if checkWin(self.board,1) or checkWin(self.board,2) or checkFull(self.board):
                 done = True
         else:
@@ -376,12 +413,19 @@ class C4Env(Env):
         t = self.model(y)
         expected_reward = t.argmax(1).item()
         predic = nn.Softmax(dim=1)(t)
+
+        valid_moves = getValid(self.board)
+        mask = torch.full((7,), float('-inf')) #creates array all set with -inf
+        for col in valid_moves:
+            mask[col] = 0 #sets the mask on valid options back to 0
+        
+
         #pick the highest value and play that piece
-        yPred = predic.argmax(1).item()
+        yPred = (predic + mask).argmax(1) #uses predicted values with mask values added
         self.turnCount += 1
         
         if not done:
-            self.board = placeToken(self.board, action-1, 2)
+            self.board = placeToken(self.board, yPred.item(), 2)
             if checkWin(self.board,1) or checkFull(self.board):
                 done = True
                 
@@ -395,17 +439,15 @@ class C4Env(Env):
         if player:
             self.render(0,0)
 
+
+        
         aiRewards += rewardRows(self.board, 2)
         aiRewards += rewardOpponentBlock(self.board, 2,1)
         aiRewards += punishWhenOpponentScores(self.board, 1)
-        #print(aiRewards)
-        #print("reward")
-        #reward = (aiRewards*self.turnCount - aiRewards)
+
+        self.replayBuffer.push(torch.Tensor(prevBoard, device=device).reshape(1, 42), yPred, torch.Tensor(self.board, device=device).reshape(1, 42), torch.Tensor([aiRewards]))
         reward = aiRewards
-        self.optimizer.zero_grad()
-        self.loss_fn(predic, predic*aiRewards).backward()
-        self.optimizer.step()
-        
+        prevBoard = self.board
         return self.state, reward, done, self.avg
 
     def render(self, episode, score):
@@ -455,18 +497,6 @@ def waitForClick():
 
 def displayBoard(board):
 
-    print("|1|2|3|4|5|6|7|")
-    for i in range(len(board)):
-        line = ""
-        for j in range(len(board[i])):
-            token=str(board[i][j])
-            token = token.replace("1", "🟥")
-            token = token.replace("2", "🟨")
-            token = token.replace("0", "  ")
-            line = line + token
-        print(line)
-    print("|1|2|3|4|5|6|7|")
-
     img = pygame.image.load("Connect4Board.png")
     img = pygame.transform.scale(img, (840, 720))
     screen.blit(img, (0, 0))
@@ -484,73 +514,54 @@ def displayBoard(board):
     
 Env = C4Env()
 
-episodes = 500000
+episodes = 5000
+epochs = 100
 avgwin = 0
 for episode in range(1, episodes+1):
     player = False
     
+    for epoch in range(epochs):
 
-    for event in pygame.event.get(): 
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                exit()
+        for event in pygame.event.get(): 
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    exit()
 
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                player = True
-                print(avgwin/10000)
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    player = True
+                    print(avgwin/10000)
 
-    state = Env.reset()
-    done = False
-    score = 0
+        state = Env.reset()
+        done = False
+        score = 0
 
-    while not done:
-        action = Env.action_space.sample()
-        n_state, reward, done, avgwin = Env.step(action, player)
-        score=reward
-        #makes it better to display ever so often
-    if episode%50 == 0:
-        Env.render(episode, score)
-        print("Episode:{},Score:{}".format(episode, score))
+        while not done:
+            n_state, reward, done, avgwin = Env.step(player)
+            score=reward
+            #makes it better to display ever so often
+        if epoch % 50 == 0:
+            Env.render(episode, score)
+            print("Episode:{},Score:{}".format(episode, score))
 
-    
+    if len(Env.replayBuffer) < 50:
+        continue
+    transitions = Env.replayBuffer.sample(50)
+    batch = Transition(*zip(*transitions))
 
-run = True
-board = [[0]*7 for i in range (6)]
-while run == True:
-    displayBoard(board)
-    for event in pygame.event.get(): 
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                exit()
-    print("Player 1, please enter the column you wish to add your piece in: \n")
-    col = waitForClick()
-    board = placeToken(board, col-1, 1)
-    win = checkWin(board, 1)
-    displayBoard(board)
-    if win == 'won':
-        print("Player 1 wins!")
-        run = False
-    #turn the board (6x7) to a tensor (matrix of matrices) that is 1x42 (so basically making our
-    # board into one LONG line of numbers by just making it have no rows lol)
-    y = torch.tensor(board, dtype=torch.float32).reshape(1, 42)
-    #make a copy of the model's result, and make your prediction
-    t = Env.model(y)
-    predic = nn.Softmax(dim=1)(t)
-    #pick the highest value and play that piece
-    yPred = predic.argmax(1).item()
-    placeToken(board, yPred, 2)
-    displayBoard(board)
-    win = checkWin(board,2)
-    if win == True:
-        run = False
-        print("AI won")
-    # calculate rewards gathered from the previous play
-    # WHEN PLACING 2 AI AGAINST EACHOTHER, THESE VALUES WILL BE REVERSED. EACH AI WOULD NEED ITS OWN REWARD VARIABLE
-    #show each prediction value just for testing sake
-    print(predic)
-    print("ai %i" %yPred)
-pygame.quit()
-exit()
+    state_batch = torch.cat(batch.state)
+    action_batch = torch.cat(batch.action)
+    reward_batch = torch.cat(batch.reward)
+    next_state_batch = torch.cat(batch.next_state)
 
+    next_state_values = torch.zeros(50)
+    with torch.no_grad():
+        next_state_values = Env.model(next_state_batch).max(1).values
 
+    state_action_values = Env.model(state_batch)
+    expected_state_action_values = (next_state_values * 0.99) + reward_batch
+
+    loss = Env.loss_fn(state_action_values, expected_state_action_values.unsqueeze(1))
+    Env.optimizer.zero_grad()
+    loss.backward()
+    Env.optimizer.step()
 
