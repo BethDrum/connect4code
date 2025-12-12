@@ -402,7 +402,7 @@ class C4Env(Env):
         prevBoard = self.board
         if not player:
             self.startPlace = autoPlayer(self.board, self.startPlace)
-            #placeToken(self.board, BetterPlayer(self.board),1)
+            #placeToken(self.board, BetterPlayer(self.board),1)      uncomment this and comment above line to switch to other autoplayer
             if checkWin(self.board,1) or checkWin(self.board,2) or checkFull(self.board):
                 done = True
         else:
